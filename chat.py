@@ -1,8 +1,4 @@
-import os
-
 import openai
-import requests
-import json
 
 def chat(messages):
     openai.api_base = "http://localhost:8080/v1"
@@ -10,7 +6,7 @@ def chat(messages):
     response = openai.ChatCompletion.create(
         model='gpt-3.5-turbo',
         messages=messages,
-        temperature=0,
+        temperature=0.7,
         stream=True,
     )
     return response
