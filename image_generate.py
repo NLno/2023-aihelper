@@ -11,5 +11,6 @@ def image_generate(content: str):
     response = requests.post(url, json=data, headers=headers)
     print(response.json()["data"][0]["url"])
     return response.json()["data"][0]["url"]
+
 if __name__ == "__main__":
     image_generate('A cute baby sea otter')

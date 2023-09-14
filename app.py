@@ -3,8 +3,9 @@ import os
 import time
 import json
 
-from chat import chat
+from chat import chat, chat_nostream
 from stt import audio2text
+from tts import text2audio
 from image_generate import image_generate
 from mnist import image_classification
 
@@ -30,6 +31,7 @@ def convert_to_messages(history):
             content = history[-1][0][0]
             response = audio2text(content)
             messages.append({"role": "user", "content": response})
+
         elif user_utt[0].endswith((".png")):
             messages.append({"role": "user", "content": f"Pleaseclassify {user_utt[0]}"})
         else:
@@ -56,6 +58,19 @@ def bot(history):
     elif history[-1][0][0].endswith((".png")):
         response = image_classification(history[-1][0][0])
         history[-1] = (history[-1][0], response)
+        yield history
+
+    elif history[-1][0].startswith("/audio"):
+        filtered_messages = []
+        for message in messages:
+            if message["role"] == "assistant" and message["content"]:
+                message["content"] = message["content"].replace("/audio", "")
+            filtered_messages.append(message)
+
+        response = chat_nostream(filtered_messages)
+        response_audio = text2audio(response['choices'][0]['message']['content'])
+        # html_code = "<audio controls><source src=\"{}\" type=\"audio/wav\"></audio>".format(response_audio)
+        history[-1][1] = response_audio,
         yield history
 
     elif history[-1][0].startswith("/image"):

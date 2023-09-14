@@ -3,14 +3,11 @@ import json
 
 def audio2text(file):
     url = 'http://localhost:8080/v1/audio/transcriptions'
-    # url = 'https://localai.io/v1/audio/transcriptions'
-    headers = {'Content-Type': 'multipart/form-data'}
 
     headers = {"Content-Type": "multipart/form-data"}
     params = {"model": "whisper-1"}
     files = {"file": open(file, "rb")}
 
-    print(file)
     response = requests.post(url, files=files, data=params,
                              #headers = headers
                              )
