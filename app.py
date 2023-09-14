@@ -11,7 +11,7 @@ from fetch import fetch
 from search import search
 from pdf import generate_text, generate_answer, generate_summary
 from function import function_calling
-from mnist import image_classification
+# from mnist import image_classification
 
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
 
@@ -27,79 +27,88 @@ def add_file(history, file):
     history = history + [((file.name,), None)]
     return history
 
-def convert_to_messages(history):
-    messages = []
+# index=0: add user, index=1, add assistant
+def convert_to_messages(history_lastest, index):
     global current_file_text
     
-    for user_utt, assistant_utt in history:
-        if user_utt[0].endswith((".wav")):
-            content = history[-1][0][0]
-            response = audio2text(content)
-            messages.append({"role": "user", "content": response})
+    user_utt = history_lastest[0]
+    assistant_utt = history_lastest[1]
+    print(user_utt)
+    print(assistant_utt)
 
-        elif user_utt[0].endswith((".png")):
-            messages.append({"role": "user", "content": f"Pleaseclassify {user_utt[0]}"})
+    if index == 0:
+        if isinstance(user_utt, tuple):
+            if user_utt[0].endswith((".wav")):
+                response = audio2text(user_utt[0])
+                messages.append({"role": "user", "content": response})
 
-        # elif user_utt[0].endswith((".txt")):
-        #     content = history[-1][0][0]
-        #     with open(content) as f:
-        #         current_file_text = f.read()
-        #     summary_prompt = generate_summary(current_file_text)
-        #     summary = generate_text(summary_prompt)
-        #     messages.append({"role": "user", "content": summary_prompt})    
+            elif user_utt[0].endswith((".png")):
+                messages.append({"role": "user", "content": f"Pleaseclassify {user_utt[0]}"})
 
-        elif user_utt.startswith("/fetch"):
-            content = user_utt.replace("/fetch", "").strip()
-            response = fetch(content)
-            if len(response) > 2048:
-                response = response[:2048] + "..."
-            messages.append({"role": "user", "content": response})
-
-        elif user_utt.startswith("/search"):
-            content = user_utt.replace("/search", "").strip()
-            response = search(content)
-            if len(response) > 2048:
-                response = response[:2048] + "..."
-            messages.append({"role": "user", "content": response})
-
-    #   elif user_utt.startswith("/file"):
-            # content = user_utt.replace("/file", "").strip()
-            # question_prompt = generate_answer(current_file_text, content)
-            # question = generate_text(question_prompt)
-            # messages.append({"role": "user", "content": question})
-
-        else:
-            messages.append({"role": "user", "content": user_utt})
-
-        messages.append({"role": "assistant", "content": assistant_utt})
+            # elif user_utt[0].endswith((".txt")):
+            #     with open(user_utt[0]) as f:
+            #         current_file_text = f.read()
+            #     summary_prompt = generate_summary(current_file_text)
+            #     summary = generate_text(summary_prompt)
+            #     messages.append({"role": "user", "content": summary_prompt})
         
-    return messages
+        else:
+            if user_utt.startswith("/fetch"):
+                content = user_utt.replace("/fetch", "").strip()
+                # messages.append({"role": "user", "content": content})
+                response = fetch(content)
+                if len(response) > 2048:
+                    response = response[:2048] + "..."
+                messages.append({"role": "user", "content": response})
+
+            elif user_utt.startswith("/search"):
+                content = user_utt.replace("/search", "").strip()
+                response = search(content)
+                if len(response) > 2048:
+                    response = response[:2048] + "..."
+                messages.append({"role": "user", "content": response})
+
+            # elif user_utt.startswith("/file"):
+                # content = user_utt.replace("/file", "").strip()
+                # question_prompt = generate_answer(current_file_text, content)
+                # question = generate_text(question_prompt)
+                # messages.append({"role": "user", "content": question})
+
+            else:
+                messages.append({"role": "user", "content": user_utt})
+
+    elif index == 1:
+        messages.append({"role": "assistant", "content": assistant_utt})
 
 def bot(history):
-    messages = convert_to_messages(history)
     print(history)
-    print(messages)
     print(history[-1])
-
+    convert_to_messages(history[-1], 0)
+    print(messages)
 
     if history[-1][0][0].endswith(".wav"):
+        print("endswith.wav")
         history[-1][1] = ""  # Update the history tuple with an empty response
         response = chat(messages)
         for chunk in response:
             chunk_message = chunk['choices'][0]['delta']['content']
             history[-1][1] += str(chunk_message)
-            time.sleep(0.02)
+            time.sleep(0.02)   
         yield history
+        convert_to_messages(history[-1], 1)
 
     elif history[-1][0][0].endswith((".png")):
+        print("endswith.png")
         response = image_classification(history[-1][0][0])
         history[-1] = (history[-1][0], response)
         yield history
+        convert_to_messages(history[-1], 1)
 
     #elif history[-1][0][0].endswith((".txt")):
         #yield history
 
     elif history[-1][0].startswith("/audio"):
+        print("startswith/audio")
         filtered_messages = []
         for message in messages:
             if message["role"] == "assistant" and message["content"]:
@@ -111,22 +120,28 @@ def bot(history):
         # html_code = "<audio controls><source src=\"{}\" type=\"audio/wav\"></audio>".format(response_audio)
         history[-1][1] = response_audio,
         yield history
+        messages.append({"role": "assistant", "content":response['choices'][0]['message']['content']})
+        # make messages of '/audio' not the URL but the text
 
     elif history[-1][0].startswith("/image"):
+        print("startswith/image")
         content = history[-1][0].replace("/image", "").strip()
         image_url = image_generate(content)
         response = f"![{content}]({image_url})"
         history[-1] = (history[-1][0], response)  # Update the history tuple with the response
         yield history
+        convert_to_messages(history[-1], 1)
 
     elif history[-1][0].startswith("/function"):
-        tmp_content = messages[-2]
+        print("startswith/function")
+        tmp_content = messages[-1]
         tmp_content["content"] = tmp_content["content"].replace("/function", "").strip()
         tmp_list = []
         tmp_list.append(tmp_content)
         response = function_calling(tmp_list)
         history[-1] = (history[-1][0], response)
         yield history
+        convert_to_messages(history[-1], 1)
 
     else:
         history[-1][1] = ""  # Update the history tuple with an empty response
@@ -136,6 +151,7 @@ def bot(history):
             history[-1][1] += str(chunk_message)
             time.sleep(0.02)
             yield history
+            convert_to_messages(history[-1], 1)
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot(
