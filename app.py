@@ -61,6 +61,7 @@ def convert_to_messages(history_lastest, index):
                     response = response[:2048] + "..."
                 messages.append({"role": "user", "content": response})
 
+            # for search, it will add 3 to messages
             elif user_utt.startswith("/search"):
                 content = user_utt.replace("/search", "").strip()
                 messages.append({"role": "user", "content": content})
@@ -92,13 +93,11 @@ def bot(history):
     print(messages)
 
     if history[-1][0][0].endswith(".wav"):
-        print("endswith.wav")
+        print("endswith.wav but normal test (for tuple type)")
         history[-1][1] = ""  # Update the history tuple with an empty response
         response = chat(messages)
         for chunk in response:
-            chunk_message = chunk['choices'][0]['delta']['content']
-            history[-1][1] += str(chunk_message)
-            time.sleep(0.02)   
+            history[-1][1] += chunk
             yield history
         convert_to_messages(history[-1], 1)
 
@@ -153,10 +152,7 @@ def bot(history):
         history[-1][1] = ""  # Update the history tuple with an empty response
         response = chat(messages)
         for chunk in response:
-            chunk_message = chunk['choices'][0]['delta']['content']
-            print(chunk_message)
-            history[-1][1] += str(chunk_message)
-            time.sleep(0.02)
+            history[-1][1] += chunk
             yield history
         convert_to_messages(history[-1], 1)
     

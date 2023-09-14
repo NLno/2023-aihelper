@@ -9,7 +9,12 @@ def chat(messages):
         temperature=0.7,
         stream=True,
     )
-    return response
+
+    for chunk in response:
+        chunk_message = chunk['choices'][0]['delta']['content']
+        print("chunk_message:", chunk_message)
+        yield str(chunk_message)
+    # return response
 
 def chat_nostream(messages):
     openai.api_base = "http://localhost:8080/v1"
@@ -23,5 +28,8 @@ def chat_nostream(messages):
     return response
 
 if __name__ == "__main__":
-    answer = chat_nostream([{'role': 'user', 'content': 'who is sunwukong'},])['choices'][0]['message']['content']
-    print(answer)
+    # answer = chat_nostream([{'role': 'user', 'content': 'who is sunwukong'},])['choices'][0]['message']['content']
+    # print(answer)
+    response = chat([{'role': 'user', 'content': 'who is sunwukong'},])
+    for chunk in response:
+        print("chunk_message:", chunk)
