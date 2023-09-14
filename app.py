@@ -55,7 +55,7 @@ def convert_to_messages(history_lastest, index):
         else:
             if user_utt.startswith("/fetch"):
                 content = user_utt.replace("/fetch", "").strip()
-                # messages.append({"role": "user", "content": content})
+
                 response = fetch(content)
                 if len(response) > 2048:
                     response = response[:2048] + "..."
@@ -63,10 +63,15 @@ def convert_to_messages(history_lastest, index):
 
             elif user_utt.startswith("/search"):
                 content = user_utt.replace("/search", "").strip()
+                messages.append({"role": "user", "content": content})
+
                 response = search(content)
                 if len(response) > 2048:
                     response = response[:2048] + "..."
-                messages.append({"role": "user", "content": response})
+                messages.append({"role": "assistant", "content": response})
+
+                search_result = "Now explain what is " + content + ", according to the following search result: " + response
+                messages.append({"role": "user", "content": search_result})
 
             # elif user_utt.startswith("/file"):
                 # content = user_utt.replace("/file", "").strip()
@@ -94,7 +99,7 @@ def bot(history):
             chunk_message = chunk['choices'][0]['delta']['content']
             history[-1][1] += str(chunk_message)
             time.sleep(0.02)   
-        yield history
+            yield history
         convert_to_messages(history[-1], 1)
 
     elif history[-1][0][0].endswith((".png")):
@@ -144,14 +149,19 @@ def bot(history):
         convert_to_messages(history[-1], 1)
 
     else:
+        print("normal text")
         history[-1][1] = ""  # Update the history tuple with an empty response
         response = chat(messages)
         for chunk in response:
             chunk_message = chunk['choices'][0]['delta']['content']
+            print(chunk_message)
             history[-1][1] += str(chunk_message)
             time.sleep(0.02)
             yield history
-            convert_to_messages(history[-1], 1)
+        convert_to_messages(history[-1], 1)
+    
+    print("end*****************")
+    print(messages)
 
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot(

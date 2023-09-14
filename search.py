@@ -16,9 +16,7 @@ def search(content: str):
     organic_results = results['organic_results']
     search_result = organic_results[0]['snippet']
     print("search result: ", search_result)
-    search_result = "Now explain what is " + content + ", according to the following search result: " + search_result
     return search_result
-    
     
 if __name__ == "__main__":
     search("Sun Wukong")

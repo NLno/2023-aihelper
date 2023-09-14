@@ -21,3 +21,7 @@ def chat_nostream(messages):
         # stream=True,
     )
     return response
+
+if __name__ == "__main__":
+    answer = chat_nostream([{'role': 'user', 'content': 'who is sunwukong'},])['choices'][0]['message']['content']
+    print(answer)

@@ -9,14 +9,14 @@ def audio2text(file):
     files = {"file": open(file, "rb")}
 
     response = requests.post(url, files=files, data=params,
-                             #headers = headers
+                            #  headers = headers
                              )
     
     if response.status_code == 200:
         response_data = json.loads(response.text)
         transcription_text = response_data["text"]
     
-    return transcription_text
+        return transcription_text
 
 if __name__ == "__main__":
     transcription = audio2text('sun-wukong.wav')
