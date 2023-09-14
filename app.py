@@ -11,7 +11,7 @@ from fetch import fetch
 from search import search
 from pdf import generate_text, generate_answer, generate_summary
 from function import function_calling
-# from mnist import image_classification
+from mnist import image_classification
 
 # Chatbot demo with multimodal input (text, markdown, LaTeX, code blocks, image, audio, & video). Plus shows support for streaming text.
 
@@ -43,7 +43,7 @@ def convert_to_messages(history_lastest, index):
                 messages.append({"role": "user", "content": response})
 
             elif user_utt[0].endswith((".png")):
-                messages.append({"role": "user", "content": f"Pleaseclassify {user_utt[0]}"})
+                messages.append({"role": "user", "content": f"Please classify {user_utt[0]}"})
 
             # elif user_utt[0].endswith((".txt")):
             #     with open(user_utt[0]) as f:
