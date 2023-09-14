@@ -12,7 +12,7 @@ def chat(messages):
 
     for chunk in response:
         chunk_message = chunk['choices'][0]['delta']['content']
-        print("chunk_message:", chunk_message)
+        # print("chunk_message:", chunk_message)
         yield str(chunk_message)
     # return response
 

@@ -10,27 +10,31 @@ def generate_text(prompt):
         model='gpt-3.5-turbo',
         prompt=prompt,
         temperature=0.7,
-        # stream=True,
+        stream=True,
     )
-    print("According to the following prompt: ", prompt, "the generated text is: ", response)
-    return response['choices'][0]['text']
-    
-    
+
+    for chunk in response:
+        if chunk['choices'][0].get('text'):
+            chunk_message = chunk['choices'][0]['text']
+            # print("chunk_message:", chunk_message)
+            yield str(chunk_message)
+
+    # return response
 
 def generate_answer(current_file_text: str, content: str):
     if len(content) > 2048:
         content = content[:2048] + "..."
-    qustion_prompt = "Now act as a question asker. You should ask a question about " + content\
-        + ", based on the following article: " + current_file_text + ", your response should only contain the question that you want to ask."
+    qustion_prompt = "Based on " + current_file_text\
+        + ", could you please provide an answer to the following question: " + content
     return qustion_prompt
-    
 
 def generate_summary(current_file_text: str):
-    summary_prompt = "Now act as a summarizer. You should summarize the following article: " + current_file_text
+    summary_prompt = "Based on " + current_file_text + ", could you provide a brief description of the text?"
     if len(summary_prompt) > 2048:
         summary_prompt = summary_prompt[:2048] + "..."
     return summary_prompt
 
 if __name__ == "__main__":
-    prompt = generate_answer("Hello", "Who is Sun Wukong?")
-    generate_text(prompt)
+    #prompt = generate_answer("Hu Tao is a character in Genshin Impact", "Who is Hu Tao?")
+    prompt = generate_summary("Sun Wukong is a character in Genshin Impact")
+    generate_text("d")

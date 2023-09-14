@@ -33,8 +33,6 @@ def convert_to_messages(history_lastest, index):
     
     user_utt = history_lastest[0]
     assistant_utt = history_lastest[1]
-    print(user_utt)
-    print(assistant_utt)
 
     if index == 0:
         if isinstance(user_utt, tuple):
@@ -45,21 +43,29 @@ def convert_to_messages(history_lastest, index):
             elif user_utt[0].endswith((".png")):
                 messages.append({"role": "user", "content": f"Please classify {user_utt[0]}"})
 
-            # elif user_utt[0].endswith((".txt")):
-            #     with open(user_utt[0]) as f:
-            #         current_file_text = f.read()
-            #     summary_prompt = generate_summary(current_file_text)
-            #     summary = generate_text(summary_prompt)
-            #     messages.append({"role": "user", "content": summary_prompt})
+            elif user_utt[0].endswith((".txt")):
+                content = user_utt[0]
+                with open(content) as f:
+                    current_file_text = f.read()
+                summary_prompt = generate_summary(current_file_text)
+                messages.append({"role": "user", "content": summary_prompt})    
         
         else:
             if user_utt.startswith("/fetch"):
                 content = user_utt.replace("/fetch", "").strip()
-
                 response = fetch(content)
                 if len(response) > 2048:
                     response = response[:2048] + "..."
                 messages.append({"role": "user", "content": response})
+            
+            elif user_utt.startswith("/file"):
+                content = user_utt.replace("/file", "").strip()
+                question_prompt = generate_answer(current_file_text, content)
+                messages.append({"role": "user", "content": question_prompt})
+
+            elif user_utt.startswith("/function"):
+                content = user_utt.replace("/function", "").strip()
+                messages.append({"role": "user", "content": content})
 
             # for search, it will add 3 to messages
             elif user_utt.startswith("/search"):
@@ -73,12 +79,6 @@ def convert_to_messages(history_lastest, index):
 
                 search_result = "Now explain what is " + content + ", according to the following search result: " + response
                 messages.append({"role": "user", "content": search_result})
-
-            # elif user_utt.startswith("/file"):
-                # content = user_utt.replace("/file", "").strip()
-                # question_prompt = generate_answer(current_file_text, content)
-                # question = generate_text(question_prompt)
-                # messages.append({"role": "user", "content": question})
 
             else:
                 messages.append({"role": "user", "content": user_utt})
@@ -108,8 +108,15 @@ def bot(history):
         yield history
         convert_to_messages(history[-1], 1)
 
-    #elif history[-1][0][0].endswith((".txt")):
-        #yield history
+    elif history[-1][0][0].endswith((".txt")) or history[-1][0].startswith("/file"):
+        print("startswith/file or endwith.txt")
+        history[-1][1] = ""  # Update the history tuple with an empty response
+        tmp_content = messages[-1]['content']
+        response = generate_text(tmp_content)
+        for chunk in response:
+            history[-1][1] += chunk
+            yield history
+        convert_to_messages(history[-1], 1)
 
     elif history[-1][0].startswith("/audio"):
         print("startswith/audio")
@@ -125,7 +132,6 @@ def bot(history):
         history[-1][1] = response_audio,
         yield history
         messages.append({"role": "assistant", "content":response['choices'][0]['message']['content']})
-        # make messages of '/audio' not the URL but the text
 
     elif history[-1][0].startswith("/image"):
         print("startswith/image")
@@ -139,7 +145,6 @@ def bot(history):
     elif history[-1][0].startswith("/function"):
         print("startswith/function")
         tmp_content = messages[-1]
-        tmp_content["content"] = tmp_content["content"].replace("/function", "").strip()
         tmp_list = []
         tmp_list.append(tmp_content)
         response = function_calling(tmp_list)
