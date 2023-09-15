@@ -54,8 +54,8 @@ def convert_to_messages(history_lastest, index):
             if user_utt.startswith("/fetch"):
                 content = user_utt.replace("/fetch", "").strip()
                 response = fetch(content)
-                if len(response) > 2048:
-                    response = response[:2048] + "..."
+                if len(response) > 1024:
+                    response = response[:1024] + "..."
                 messages.append({"role": "user", "content": response})
             
             elif user_utt.startswith("/file"):
@@ -67,16 +67,11 @@ def convert_to_messages(history_lastest, index):
                 content = user_utt.replace("/function", "").strip()
                 messages.append({"role": "user", "content": content})
 
-            # for search, it will add 3 to messages
             elif user_utt.startswith("/search"):
                 content = user_utt.replace("/search", "").strip()
-                messages.append({"role": "user", "content": content})
-
                 response = search(content)
                 if len(response) > 2048:
                     response = response[:2048] + "..."
-                messages.append({"role": "assistant", "content": response})
-
                 search_result = "Now explain what is " + content + ", according to the following search result: " + response
                 messages.append({"role": "user", "content": search_result})
 
