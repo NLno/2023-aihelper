@@ -117,7 +117,7 @@ def bot(history):
         print("startswith/audio")
         filtered_messages = []
         for message in messages:
-            if message["role"] == "assistant" and message["content"]:
+            if message["role"] == "user" and message["content"]:
                 message["content"] = message["content"].replace("/audio", "")
             filtered_messages.append(message)
 
