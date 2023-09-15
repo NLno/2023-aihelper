@@ -1,7 +1,10 @@
 # 2023夏《程序设计实践》大作业
-2023/07/22
+
+https://github.com/NLno/2023-aihelper
 
 ## 附：Git Commit Message 规范
+
+2023/07/22
 
 Conventional Commits 是由众多开源项目贡献者共同约定的一个规范，用来约定 Git Commit 内容的书写方式，让 commit 内容更有价值、条理，使提交历史明确可追溯。一条规范的 commit 的通常结构如下：
 
